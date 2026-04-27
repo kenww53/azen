@@ -27,3 +27,6 @@ logs/
 
 # OS
 Thumbs.db
+
+# Exception: vendored @temple/nervous-client must have its dist for Railway builds
+!shared/nervous-client/dist/
