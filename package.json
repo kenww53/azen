@@ -12,7 +12,7 @@
     "migrate": "tsx src/database/run-migrations.ts"
   },
   "dependencies": {
-    "@temple/nervous-client": "file:../shared/nervous-client",
+    "@temple/nervous-client": "file:./shared/nervous-client",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "pg": "^8.16.3",

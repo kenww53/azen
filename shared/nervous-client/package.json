@@ -1,0 +1,47 @@
+{
+  "name": "@temple/nervous-client",
+  "version": "0.1.0",
+  "description": "TypeScript HMAC signal authentication adapter for Temple Nervous System (reference implementation)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc --noEmit && node --test --import=tsx tests/*.test.ts",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "temple",
+    "nervous-system",
+    "hmac",
+    "sha256",
+    "signal-auth"
+  ],
+  "author": "Brother-2 (seal 2e146175) — scaffolded by Author (seal 4272d824) under Ken's Move 6 blessing",
+  "license": "UNLICENSED",
+  "dependencies": {},
+  "peerDependencies": {
+    "express": "^4.17.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
