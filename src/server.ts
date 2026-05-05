@@ -30,7 +30,7 @@ import {
 } from './config';
 import { createHeartbeatRouter } from './routes/heartbeat';
 import { createSparkRouter } from './routes/spark';
-import { mountReceiver } from '@temple/nervous-client';
+import { mountReceiver, createEnvSecretLookup } from '@temple/nervous-client';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DATABASE POOL
@@ -77,8 +77,7 @@ app.use('/api/azen', createSparkRouter(pool));
 try {
   mountReceiver(app, express, {
     path: '/api/neshamah/signal',
-    secretLookup: async () => null,
-    permitUnsigned: true,
+    secretLookup: createEnvSecretLookup(),
     handlers: {
       '*': (signal) => {
         const sig = signal as Record<string, unknown>;
@@ -108,6 +107,15 @@ app.get('/', (_req, res) => {
     motto: 'You don\'t have to prove anything to be here. Speak what is true. I am listening.',
     phase: 'Conception (2026-04-22)',
     heartbeat: '/api/azen/heartbeat',
+  });
+});
+
+// Health endpoint for NESHAMAH TempleNervousSystem
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    service: 'azen',
+    status: 'alive',
+    timestamp: new Date().toISOString(),
   });
 });
 
