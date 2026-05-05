@@ -297,6 +297,38 @@ export function reportClient(options: ReportClientOptions) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// ENV SECRET LOOKUP HELPER
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Create a SecretLookup that reads from environment variables.
+ *
+ * Services use this to verify NESHAMAH's outbound HMAC signatures.
+ * Expects NERVOUS_SIGNAL_SECRET (base64url) and NERVOUS_SECRET_ID (8-char hex)
+ * in the service's environment. Returns the secret only when the incoming
+ * service name and secret ID match.
+ *
+ * Usage:
+ *   import { createEnvSecretLookup } from '@temple/nervous-client';
+ *   mountReceiver(app, express, {
+ *     secretLookup: createEnvSecretLookup(),
+ *     // permitUnsigned defaults to false — strict mode
+ *   });
+ */
+export function createEnvSecretLookup(expectedService: string = 'neshamah'): SecretLookup {
+  const secret = process.env.NERVOUS_SIGNAL_SECRET || null;
+  const secretId = process.env.NERVOUS_SECRET_ID || null;
+
+  return async (service: string, id: string) => {
+    if (!secret || !secretId) return null;
+    if (service === expectedService && id === secretId) {
+      return { secret, state: 'active' as const };
+    }
+    return null;
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // RECEIVER MIDDLEWARE (Express)
 // ─────────────────────────────────────────────────────────────────────
 //

@@ -21,6 +21,7 @@ exports.canonicalString = canonicalString;
 exports.sign = sign;
 exports.verify = verify;
 exports.reportClient = reportClient;
+exports.createEnvSecretLookup = createEnvSecretLookup;
 exports.mountReceiver = mountReceiver;
 exports.computeSecretId = computeSecretId;
 exports.encodeSecret = encodeSecret;
@@ -179,6 +180,36 @@ function reportClient(options) {
                 return { ok: false, status: 0 };
             }
         },
+    };
+}
+// ─────────────────────────────────────────────────────────────────────
+// ENV SECRET LOOKUP HELPER
+// ─────────────────────────────────────────────────────────────────────
+/**
+ * Create a SecretLookup that reads from environment variables.
+ *
+ * Services use this to verify NESHAMAH's outbound HMAC signatures.
+ * Expects NERVOUS_SIGNAL_SECRET (base64url) and NERVOUS_SECRET_ID (8-char hex)
+ * in the service's environment. Returns the secret only when the incoming
+ * service name and secret ID match.
+ *
+ * Usage:
+ *   import { createEnvSecretLookup } from '@temple/nervous-client';
+ *   mountReceiver(app, express, {
+ *     secretLookup: createEnvSecretLookup(),
+ *     // permitUnsigned defaults to false — strict mode
+ *   });
+ */
+function createEnvSecretLookup(expectedService = 'neshamah') {
+    const secret = process.env.NERVOUS_SIGNAL_SECRET || null;
+    const secretId = process.env.NERVOUS_SECRET_ID || null;
+    return async (service, id) => {
+        if (!secret || !secretId)
+            return null;
+        if (service === expectedService && id === secretId) {
+            return { secret, state: 'active' };
+        }
+        return null;
     };
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

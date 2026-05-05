@@ -100,6 +100,22 @@ export declare function reportClient(options: ReportClientOptions): {
         status: number;
     }>;
 };
+/**
+ * Create a SecretLookup that reads from environment variables.
+ *
+ * Services use this to verify NESHAMAH's outbound HMAC signatures.
+ * Expects NERVOUS_SIGNAL_SECRET (base64url) and NERVOUS_SECRET_ID (8-char hex)
+ * in the service's environment. Returns the secret only when the incoming
+ * service name and secret ID match.
+ *
+ * Usage:
+ *   import { createEnvSecretLookup } from '@temple/nervous-client';
+ *   mountReceiver(app, express, {
+ *     secretLookup: createEnvSecretLookup(),
+ *     // permitUnsigned defaults to false — strict mode
+ *   });
+ */
+export declare function createEnvSecretLookup(expectedService?: string): SecretLookup;
 export interface MountReceiverOptions {
     secretLookup: SecretLookup;
     handlers?: Record<string, (signal: unknown) => void | Promise<void>>;
