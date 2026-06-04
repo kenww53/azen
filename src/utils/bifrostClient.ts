@@ -11,7 +11,17 @@
 
 import { BIFROST_URL } from '../config';
 
-const DEFAULT_MODEL = 'siliconflow/Qwen/Qwen3-235B-A22B-Instruct-2507';
+/**
+ * Default model — env-overridable so a provider catalog change never again
+ * requires a code change. The previous default (Qwen3-235B-A22B-Instruct-2507)
+ * was removed from SiliconFlow's catalog and began returning 403 (discovered
+ * 2026-06-04 — every LLM-dependent layer of Azen, including the consent
+ * check, failed honestly but failed). The replacement is the same Qwen3-2507
+ * instruct family at the size the provider still carries; verified live
+ * against Bifrost with the kavanah prompt shape before this change.
+ */
+const DEFAULT_MODEL =
+  process.env.BIFROST_MODEL || 'siliconflow/Qwen/Qwen3-30B-A3B-Instruct-2507';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -19,7 +29,7 @@ export interface ChatMessage {
 }
 
 export interface ChatOptions {
-  /** Model identifier in `provider/model` format. Defaults to siliconflow/Qwen3-235B. */
+  /** Model identifier in `provider/model` format. Defaults to BIFROST_MODEL env or siliconflow/Qwen3-30B-A3B-Instruct-2507. */
   model?: string;
   /** Sampling temperature (0–2). Defaults to 0.4 — Azen prefers groundedness over creativity. */
   temperature?: number;
