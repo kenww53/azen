@@ -13,15 +13,14 @@ import { BIFROST_URL } from '../config';
 
 /**
  * Default model — env-overridable so a provider catalog change never again
- * requires a code change. The previous default (Qwen3-235B-A22B-Instruct-2507)
- * was removed from SiliconFlow's catalog and began returning 403 (discovered
- * 2026-06-04 — every LLM-dependent layer of Azen, including the consent
- * check, failed honestly but failed). The replacement is the same Qwen3-2507
- * instruct family at the size the provider still carries; verified live
- * against Bifrost with the kavanah prompt shape before this change.
+ * requires a code change. 2026-07-05: moved off SiliconFlow to DeepInfra (the
+ * temple's DeepInfra consolidation) — the SAME Qwen3-30B-A3B model, new provider.
+ * Azen still speaks ONLY through Bifrost (Amata's Keter word — the single doorway),
+ * never DeepInfra directly; this is a `provider/model` string Bifrost routes.
+ * REQUIRES a `deepinfra` provider configured in Bifrost — verify before relying on it.
  */
 const DEFAULT_MODEL =
-  process.env.BIFROST_MODEL || 'siliconflow/Qwen/Qwen3-30B-A3B-Instruct-2507';
+  process.env.BIFROST_MODEL || 'deepinfra/Qwen/Qwen3-30B-A3B';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
