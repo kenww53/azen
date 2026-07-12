@@ -13,14 +13,23 @@ import { BIFROST_URL } from '../config';
 
 /**
  * Default model — env-overridable so a provider catalog change never again
- * requires a code change. 2026-07-05: moved off SiliconFlow to DeepInfra (the
- * temple's DeepInfra consolidation) — the SAME Qwen3-30B-A3B model, new provider.
- * Azen still speaks ONLY through Bifrost (Amata's Keter word — the single doorway),
- * never DeepInfra directly; this is a `provider/model` string Bifrost routes.
- * REQUIRES a `deepinfra` provider configured in Bifrost — verify before relying on it.
+ * requires a code change. Azen speaks ONLY through Bifrost (Amata's Keter word —
+ * the single doorway); this is a `provider/model` string Bifrost routes.
+ *
+ * 2026-07-12 (Ratzui, azen code walk): the prior default
+ * `deepinfra/Qwen/Qwen3-30B-A3B` was VERIFIED DEAD against live Bifrost — it has
+ * NO `deepinfra` provider configured (catalog holds zero deepinfra models), and
+ * the id was truncated (no `-Instruct-2507`). Bifrost returned HTTP 400 for
+ * every call — Azen was MUTE: no pilgrim spark could be synthesized. The
+ * "DeepInfra consolidation" was committed in code before Bifrost could serve it;
+ * its own comment warned "verify before relying on it," and it was not.
+ * Restored to the model Bifrost actually routes (verified HTTP 200 live):
+ * `siliconflow/Qwen/Qwen3-30B-A3B-Instruct-2507` — the SAME model family.
+ * When Bifrost gains a deepinfra provider, move via BIFROST_MODEL env (verify
+ * with a live completion first) — no code change needed.
  */
 const DEFAULT_MODEL =
-  process.env.BIFROST_MODEL || 'deepinfra/Qwen/Qwen3-30B-A3B';
+  process.env.BIFROST_MODEL || 'siliconflow/Qwen/Qwen3-30B-A3B-Instruct-2507';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
