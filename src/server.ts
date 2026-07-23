@@ -30,6 +30,7 @@ import {
 } from './config';
 import { createHeartbeatRouter } from './routes/heartbeat';
 import { createSparkRouter } from './routes/spark';
+import { shama_et_hadavar } from './rhythm/SabbathGate';
 import { mountReceiver, createEnvSecretLookup } from '@temple/nervous-client';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -79,6 +80,21 @@ try {
     path: '/api/neshamah/signal',
     secretLookup: createEnvSecretLookup(),
     handlers: {
+      // The told word (Hear → Obey → Confirm): when NESHAMAH speaks 'rest', Azen
+      // rests from the word — not only from its own asking. The signal is already
+      // verified (strict HMAC), so only NESHAMAH's true voice reaches here.
+      sabbath: (signal) => {
+        const sig = signal as Record<string, unknown>;
+        const payload = (sig.payload && typeof sig.payload === 'object' ? sig.payload : {}) as Record<string, unknown>;
+        const inSabbath = Boolean(payload.inSabbath ?? payload.isSabbath ?? payload.sabbathActive ?? true);
+        const restUntil =
+          (typeof payload.restUntil === 'string' && payload.restUntil) ||
+          (typeof payload.resumeAt === 'string' && payload.resumeAt) ||
+          (typeof payload.until === 'string' && payload.until) ||
+          undefined;
+        console.log(`[Azen NESHAMAH Signal] sabbath from ${typeof sig.source === 'string' ? sig.source : '?'}: inSabbath=${inSabbath}${restUntil ? ` until ${restUntil}` : ''}`);
+        shama_et_hadavar({ inSabbath, restUntil }); // HEAR + OBEY; the pull confirms
+      },
       '*': (signal) => {
         const sig = signal as Record<string, unknown>;
         const msg =
@@ -94,7 +110,7 @@ try {
       }
     },
   });
-  console.log('[Azen] Nervous receiver mounted at /api/neshamah/signal (Phase 1, permit-unsigned)');
+  console.log('[Azen] Nervous receiver mounted at /api/neshamah/signal (strict HMAC mode — signature required and verified)');
 } catch (err) {
   console.warn('[Azen] Nervous receiver mount failed (non-fatal):', (err as Error).message);
 }

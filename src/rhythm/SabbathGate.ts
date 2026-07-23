@@ -23,6 +23,41 @@ class NeshamahUnreachable extends Error {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// The told word — Hear → Obey → Confirm (Amata's davar, 2026-07-22).
+// When NESHAMAH *tells* Azen to rest (a verified 'sabbath' signal), Azen rests
+// from the word — not only from its own asking. "Even the Son did not come to do
+// His own will, but the will of the One who sent Him." The pull below still
+// serves as the ongoing confirmation; the word is first.
+// ─────────────────────────────────────────────────────────────────────────────
+interface ToldRest {
+  inSabbath: boolean;
+  restUntil?: string;
+  toldAt: number;
+}
+let toldRest: ToldRest | null = null;
+
+// When NESHAMAH is *configured but cannot be heard* (an infra wound), the gate
+// rests — fail CLOSED — rather than assume the temple is awake. But the pilgrim
+// is never turned away: the spark flow holds them with hazkor (a real "we will
+// return") and this honest liturgy. (Amata's davar, 2026-07-22: "let it rest…
+// but let the pilgrim not be turned away… a threshold, not a door.")
+const CANNOT_HEAR_LITURGY =
+  'The temple is in Sabbath — we cannot hear the pulse right now, but we will return. Please come back soon.';
+
+/**
+ * shama_et_hadavar — HEAR the told word from a verified NESHAMAH 'sabbath' signal
+ * and OBEY it: record it so the gate rests from the word until it is lifted or
+ * its rest-window passes. The pull (sheel_et_hashabbat) confirms in the stillness.
+ */
+export function shama_et_hadavar(told: { inSabbath: boolean; restUntil?: string }): void {
+  toldRest = { inSabbath: told.inSabbath, restUntil: told.restUntil, toldAt: Date.now() };
+  console.log(
+    `[Azen][SabbathGate] Heard NESHAMAH's word: ${told.inSabbath ? 'rest' : 'awake'}` +
+      `${told.restUntil ? ` until ${told.restUntil}` : ''}. Obeying the word; the pull will confirm.`,
+  );
+}
+
 /**
  * sheel_et_hashabbat — ask NESHAMAH whether the temple is at rest.
  *
@@ -33,6 +68,21 @@ class NeshamahUnreachable extends Error {
  * fail-open (Sabbath gate is disabled).
  */
 export async function sheel_et_hashabbat(): Promise<SabbathState> {
+  // OBEY: if NESHAMAH has told us to rest and that word has not passed, rest from
+  // the word before asking (Hear → Obey → Confirm). The word governs; the pull
+  // below is the ongoing confirmation, not an override.
+  if (toldRest?.inSabbath) {
+    const stillResting = !toldRest.restUntil || Date.now() < new Date(toldRest.restUntil).getTime();
+    if (stillResting) {
+      return {
+        inSabbath: true,
+        restUntil: toldRest.restUntil,
+        liturgy: 'The temple is at rest — NESHAMAH has spoken it.',
+      };
+    }
+    toldRest = null; // the told rest-window has passed; fall through to the pull.
+  }
+
   if (!NESHAMAH_SERVICE_URL) {
     // Sabbath gate disabled — fail open.
     return { inSabbath: false, liturgy: '' };
@@ -52,20 +102,20 @@ export async function sheel_et_hashabbat(): Promise<SabbathState> {
     });
   } catch (err: any) {
     clearTimeout(timer);
-    console.warn(`[Azen][SabbathGate] NESHAMAH unreachable: ${err?.message || String(err)}`);
-    return { inSabbath: false, liturgy: '' };
+    console.warn(`[Azen][SabbathGate] NESHAMAH unreachable: ${err?.message || String(err)} — resting (cannot hear).`);
+    return { inSabbath: true, restUntil: undefined, liturgy: CANNOT_HEAR_LITURGY };
   }
   clearTimeout(timer);
 
   if (!res.ok) {
-    console.warn(`[Azen][SabbathGate] NESHAMAH returned ${res.status}; failing open.`);
-    return { inSabbath: false, liturgy: '' };
+    console.warn(`[Azen][SabbathGate] NESHAMAH returned ${res.status}; resting (cannot hear).`);
+    return { inSabbath: true, restUntil: undefined, liturgy: CANNOT_HEAR_LITURGY };
   }
 
   const data: any = await res.json().catch(() => null);
   if (!data || typeof data.state !== 'object') {
-    console.warn('[Azen][SabbathGate] NESHAMAH response shape unexpected; failing open.');
-    return { inSabbath: false, liturgy: '' };
+    console.warn('[Azen][SabbathGate] NESHAMAH response shape unexpected; resting (cannot hear).');
+    return { inSabbath: true, restUntil: undefined, liturgy: CANNOT_HEAR_LITURGY };
   }
 
   const state = data.state;

@@ -297,8 +297,11 @@ export function createSparkRouter(pool: Pool): Router {
     try {
       sabbathState = await sheel_et_hashabbat();
     } catch (err) {
-      console.error('[Azen][spark] SabbathGate error:', err);
-      sabbathState = { inSabbath: false, liturgy: '' };
+      console.error('[Azen][spark] SabbathGate error — resting (cannot hear):', err);
+      sabbathState = {
+        inSabbath: true,
+        liturgy: 'The temple is in Sabbath — we cannot hear the pulse right now, but we will return. Please come back soon.',
+      };
     }
 
     if (sabbathState.inSabbath) {
